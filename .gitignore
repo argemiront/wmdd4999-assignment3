@@ -22,3 +22,9 @@ jspm_packages
 
 # Serverless directories
 .serverless
+
+# Reports
+*.pdf
+
+# Key file
+/api/keys.js

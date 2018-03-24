@@ -26,6 +26,19 @@ module.exports.created = (event) => {
         return
       }
 
+      const lambda = new AWS.Lambda({
+        region: 'us-west-2'
+      })
+      const request = lambda.invoke({
+        InvocationType: 'Event',
+        FunctionName: 'wmdd4999-assignment3-dev-send-sms',
+        LogType: 'None',
+        Payload: JSON.stringify({
+          message: `The file "${record.s3.object.key}" was added to the bucket`
+        })
+      })
+      request.send()
+
       console.log(results)
     })
   })
@@ -52,6 +65,19 @@ module.exports.removed = (event) => {
         console.error(err)
         return
       }
+
+      const lambda = new AWS.Lambda({
+        region: 'us-west-2'
+      })
+      const request = lambda.invoke({
+        InvocationType: 'Event',
+        FunctionName: 'wmdd4999-assignment3-dev-send-sms',
+        LogType: 'None',
+        Payload: JSON.stringify({
+          message: `The file "${record.s3.object.key}" was removed from the bucket`
+        })
+      })
+      request.send()
 
       console.log(results)
     })
@@ -81,49 +107,6 @@ module.exports.listFiles = (event, context, callback) => {
 
       callback(null, response)
   })
-}
-
-module.exports.addFile = (event, context, callback) => {
- 
-  callback(null, {
-    statusCode: 200,
-    headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': '*',
-      },
-    body: JSON.stringify(event)
-  })
-  
-  return
- 
-
-  // var s3 = new AWS.S3()
-  // var params = {
-  //     Bucket : bucketName,
-  //     Key : data,
-  //     Body : event.body
-  // }
-
-  // s3.putObject(params, function(err, data) {
-  //   if (err)
-  //     callback(null, {
-  //       statusCode: 500,
-  //       headers: {
-  //           'Access-Control-Allow-Origin': '*',
-  //           'Access-Control-Allow-Credentials': '*',
-  //         },
-  //       body: JSON.stringify(err)
-  //   })
-  //   else
-  //     callback(null, {
-  //       statusCode: 200,
-  //       headers: {
-  //           'Access-Control-Allow-Origin': '*',
-  //           'Access-Control-Allow-Credentials': '*',
-  //         },
-  //       body: JSON.stringify(data)
-  //     })  
-  // })
 }
 
 module.exports.removeFile = (event, context, callback) => {
@@ -156,4 +139,29 @@ module.exports.removeFile = (event, context, callback) => {
         body: JSON.stringify(data)
       })  
   })
+}
+
+module.exports.sendSMS = (event) => {
+  const keys = require('./keys')
+  const accountSid = keys.account
+  const authToken = keys.token
+  
+  const client = require('twilio')(accountSid, authToken)
+
+  console.log(event)
+
+  client.messages.create(
+    {
+      to: keys.phone,
+      from: keys.twilio,
+      body: event.message,
+    },
+    (err, message) => {
+      if (err) {
+        console.log(err)
+        return
+      }
+      console.log(message)
+    }
+  )
 }

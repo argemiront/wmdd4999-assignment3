@@ -13,6 +13,8 @@ provider:
     - Effect: "Allow"
       Action:
         - "s3:*"
+        - "lambda:InvokeFunction"
+        - "lambda:InvokeAsync"
       Resource: "*"
     
     - Effect: "Allow"
@@ -44,14 +46,8 @@ functions:
           method: get
           cors: true
 
-  add-file:
-    handler: handler.addFile
-    events:
-      - http:
-          path: add
-          method: post
-          cors: true
-          integration: LAMBDA
+  send-sms:
+    handler: handler.sendSMS
 
   remove-file:
     handler: handler.removeFile
@@ -64,22 +60,22 @@ functions:
 
 resources:
   Resources:
-    RecipesDynamoDbTable:
-      Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Retain
-      Properties:
-        AttributeDefinitions:
-          -
-            AttributeName: "id"
-            AttributeType: "S"   
-        KeySchema:
-          -
-            AttributeName: "id"
-            KeyType: "HASH"
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
-        TableName: ${self:custom.name}
+    # FilesDynamoDbTable:
+    #   Type: 'AWS::DynamoDB::Table'
+    #   DeletionPolicy: Retain
+    #   Properties:
+    #     AttributeDefinitions:
+    #       -
+    #         AttributeName: "id"
+    #         AttributeType: "S"   
+    #     KeySchema:
+    #       -
+    #         AttributeName: "id"
+    #         KeyType: "HASH"
+    #     ProvisionedThroughput:
+    #       ReadCapacityUnits: 5
+    #       WriteCapacityUnits: 5
+    #     TableName: ${self:custom.name}
   
     WebAppS3Bucket:
       Type: AWS::S3::Bucket
